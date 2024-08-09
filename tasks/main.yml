@@ -1,0 +1,47 @@
+---
+- name: download awscliv2 from aws
+  ansible.builtin.shell:
+    cmd: "curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /var/tmp/awscliv2.zip"
+    creates: /var/tmp/awscliv2.zip
+
+- name: unzip /var/tmp/awscliv2.zip
+  ansible.builtin.shell:
+    cmd: "unzip awscliv2.zip"
+    chdir: /var/tmp
+    creates: /var/tmp/aws/install
+
+- name: install awscli v2
+  ansible.builtin.shell:
+    cmd: ./aws/install 
+    chdir: /var/tmp
+    creates: /usr/local/bin/aws
+
+- name: awscli config directory
+  file:
+    state: directory
+    path: "~{{ ansible_user }}/.aws"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0700'
+
+- name: awscli config file
+  copy:
+    dest: "~{{ ansible_user }}/.aws/config"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+    content: |
+      [default]
+      region = {{ AWSCLI_AWS_REGION }}
+
+- name: awscli credentials file
+  copy:
+    dest: "~{{ ansible_user }}/.aws/credentials"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+    content: |
+      [default]
+      aws_access_key_id = {{ AWSCLI_AWS_ACCESS_KEY_ID }}
+      aws_secret_access_key = {{ AWSCLI_AWS_SECRET_ACCESS_KEY }}
+
